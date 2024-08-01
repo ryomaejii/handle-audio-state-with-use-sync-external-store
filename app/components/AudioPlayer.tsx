@@ -9,13 +9,7 @@ interface AudioPlayerProps {
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const currentAudio = useCurrentAudio();
-
-  const handlePlay = () => {
-    if (audioRef.current) {
-      playAudio(audioRef.current);
-    }
-  };
+  const [handlePlay] = useCurrentAudio(audioRef);
 
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -28,13 +22,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (currentAudio && currentAudio !== audioRef.current && audioRef.current) {
-      audioRef.current.pause();
-    }
-  }, [currentAudio]);
-
-  return <audio ref={audioRef} src={src} controls />;
+  return <audio ref={audioRef} src={src} controls onPlay={handlePlay} />;
 };
 
 export default AudioPlayer;
