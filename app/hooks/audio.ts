@@ -1,8 +1,9 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 type AudioElement = HTMLAudioElement | null;
 
 let currentAudio: AudioElement = null;
+const audioElements = new Set<HTMLAudioElement>();
 const listeners = new Set<() => void>();
 
 function subscribe(listener: () => void): () => void {
@@ -32,9 +33,38 @@ export function useCurrentAudio() {
   };
 }
 
+export function useRegisterAudio(audioRef: React.RefObject<HTMLAudioElement>) {
+  useEffect(() => {
+    const audioElement = audioRef.current;
+    if (audioElement) {
+      registerAudioElement(audioElement);
+    }
+    return () => {
+      if (audioElement) {
+        unregisterAudioElement(audioElement);
+      }
+    };
+  }, [audioRef]);
+}
+
+export function registerAudioElement(audio: HTMLAudioElement) {
+  audioElements.add(audio);
+}
+
+export function unregisterAudioElement(audio: HTMLAudioElement) {
+  audioElements.delete(audio);
+}
+
 export function playAudio(audioRef: React.RefObject<HTMLAudioElement>): void {
   if (audioRef.current) {
     setCurrentAudio(audioRef.current);
     audioRef.current.play();
   }
+}
+
+export function resetAllAudio() {
+  audioElements.forEach((audio) => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
 }
