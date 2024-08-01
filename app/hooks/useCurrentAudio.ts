@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 type AudioElement = HTMLAudioElement | null;
 
@@ -15,33 +15,26 @@ function getSnapshot(): AudioElement {
 }
 
 function setCurrentAudio(audio: AudioElement): void {
+  if (currentAudio && currentAudio !== audio) {
+    currentAudio.pause();
+  }
   currentAudio = audio;
   listeners.forEach((listener) => listener());
 }
 
-export function useCurrentAudio(
-  audioRef: React.RefObject<HTMLAudioElement>
-): [() => void] {
+export function useCurrentAudio() {
   const audio = useSyncExternalStore(subscribe, getSnapshot);
+  const isPlaying = Boolean(audio);
 
-  const handlePlay = () => {
-    if (audioRef.current) {
-      playAudio(audioRef.current);
-    }
+  return {
+    audio,
+    isPlaying,
   };
-
-  useEffect(() => {
-    if (audio && audio !== audioRef.current && audioRef.current) {
-      audioRef.current.pause();
-    }
-  }, [audio, audioRef]);
-
-  return [handlePlay];
 }
 
-export function playAudio(audio: AudioElement): void {
-  if (currentAudio && currentAudio !== audio) {
-    currentAudio.pause();
+export function playAudio(audioRef: React.RefObject<HTMLAudioElement>): void {
+  if (audioRef.current) {
+    setCurrentAudio(audioRef.current);
+    audioRef.current.play();
   }
-  setCurrentAudio(audio);
 }
