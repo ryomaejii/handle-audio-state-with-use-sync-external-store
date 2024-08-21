@@ -1,10 +1,10 @@
 "use client";
 
 import AudioPlayer from "./components/AudioPlayer";
-import { resetAllAudio, useCurrentAudio } from "./hooks/audio";
+import { useAudioManager } from "./contexts/AudioManager";
 
 export default function Page() {
-  const { isPlaying } = useCurrentAudio();
+  const { playingAudios } = useAudioManager();
 
   return (
     <div
@@ -15,8 +15,7 @@ export default function Page() {
         gap: "16px",
       }}
     >
-      <p>{isPlaying ? "Playing" : "Paused"}</p>
-      <button onClick={resetAllAudio}>Reset</button>
+      <div>Playing audios: {playingAudios.length}</div>
       <AudioPlayer src="sample.mp3" />
       <AudioPlayer src="sample.mp3" />
       <AudioPlayer src="sample.mp3" />
