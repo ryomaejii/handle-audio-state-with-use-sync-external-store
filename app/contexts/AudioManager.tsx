@@ -11,7 +11,7 @@ import React, {
 interface AudioManagerContext {
   addAudio: (audio: HTMLAudioElement) => void;
   removeAudio: (audio: HTMLAudioElement) => void;
-  getPlayingAudios: () => HTMLAudioElement[];
+  playingAudios: HTMLAudioElement[];
 }
 
 const AudioManagerContext = createContext<AudioManagerContext | undefined>(
@@ -45,11 +45,9 @@ export const AudioManagerProvider = ({ children }: { children: ReactNode }) => {
     [setPlayingAudios]
   );
 
-  const getPlayingAudios = useCallback(() => playingAudios, [playingAudios]);
-
   return (
     <AudioManagerContext.Provider
-      value={{ addAudio, removeAudio, getPlayingAudios }}
+      value={{ addAudio, removeAudio, playingAudios }}
     >
       {children}
     </AudioManagerContext.Provider>

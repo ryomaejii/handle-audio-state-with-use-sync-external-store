@@ -1,42 +1,58 @@
-import { useSyncExternalStore } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 import { useAudioManager } from "../contexts/AudioManager";
 
 interface AudioState {
+  audioRef: React.MutableRefObject<HTMLAudioElement | null>;
   isPlaying: boolean;
   currentTime: number;
 }
 
-export function useAudioState(
-  audioElement: React.RefObject<HTMLAudioElement>
-): AudioState {
-  const { addAudio, removeAudio } = useAudioManager();
+export function useAudioState({
+  pauseAllAudiosBeforePlay = true,
+}: {
+  pauseAllAudiosBeforePlay?: boolean;
+}): AudioState {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { addAudio, removeAudio, playingAudios } = useAudioManager();
+
+  const pauseAllOtherAudios = useCallback(
+    (audio: HTMLAudioElement) => {
+      playingAudios.forEach((a) => {
+        if (a !== audio) {
+          a.pause();
+        }
+      });
+    },
+    [playingAudios]
+  );
 
   const getIsPlayingSnapshot = () =>
-    audioElement.current ? !audioElement.current.paused : false;
+    audioRef.current ? !audioRef.current.paused : false;
   const getCurrentTimeSnapshot = () =>
-    audioElement.current ? audioElement.current.currentTime : 0;
+    audioRef.current ? audioRef.current.currentTime : 0;
 
   const subscribeToIsPlaying = (callback: () => void) => {
     const handlePlayPause = () => {
-      if (audioElement.current) {
-        if (audioElement.current.paused) {
-          removeAudio(audioElement.current);
+      if (audioRef.current) {
+        if (audioRef.current.paused) {
+          removeAudio(audioRef.current);
         } else {
-          addAudio(audioElement.current);
+          pauseAllAudiosBeforePlay && pauseAllOtherAudios(audioRef.current);
+          addAudio(audioRef.current);
         }
       }
       callback();
     };
 
-    if (audioElement.current) {
-      audioElement.current.addEventListener("play", handlePlayPause);
-      audioElement.current.addEventListener("pause", handlePlayPause);
+    if (audioRef.current) {
+      audioRef.current.addEventListener("play", handlePlayPause);
+      audioRef.current.addEventListener("pause", handlePlayPause);
     }
 
     return () => {
-      if (audioElement.current) {
-        audioElement.current.removeEventListener("play", handlePlayPause);
-        audioElement.current.removeEventListener("pause", handlePlayPause);
+      if (audioRef.current) {
+        audioRef.current.removeEventListener("play", handlePlayPause);
+        audioRef.current.removeEventListener("pause", handlePlayPause);
       }
     };
   };
@@ -44,16 +60,13 @@ export function useAudioState(
   const subscribeToCurrentTime = (callback: () => void) => {
     const handleTimeUpdate = () => callback();
 
-    if (audioElement.current) {
-      audioElement.current.addEventListener("timeupdate", handleTimeUpdate);
+    if (audioRef.current) {
+      audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
     }
 
     return () => {
-      if (audioElement.current) {
-        audioElement.current.removeEventListener(
-          "timeupdate",
-          handleTimeUpdate
-        );
+      if (audioRef.current) {
+        audioRef.current.removeEventListener("timeupdate", handleTimeUpdate);
       }
     };
   };
@@ -67,5 +80,5 @@ export function useAudioState(
     getCurrentTimeSnapshot
   );
 
-  return { isPlaying, currentTime };
+  return { audioRef, isPlaying, currentTime };
 }

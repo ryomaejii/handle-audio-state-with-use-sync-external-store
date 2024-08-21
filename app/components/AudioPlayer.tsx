@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useRef } from "react";
 import { useAudioState } from "../hooks/useAudioState";
 
 interface AudioPlayerProps {
@@ -8,8 +7,7 @@ interface AudioPlayerProps {
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const { isPlaying, currentTime } = useAudioState(audioRef);
+  const { audioRef, isPlaying, currentTime } = useAudioState({});
 
   return (
     <div>

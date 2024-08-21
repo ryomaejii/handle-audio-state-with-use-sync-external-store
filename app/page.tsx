@@ -4,7 +4,7 @@ import AudioPlayer from "./components/AudioPlayer";
 import { useAudioManager } from "./contexts/AudioManager";
 
 export default function Page() {
-  const { getPlayingAudios } = useAudioManager();
+  const { playingAudios } = useAudioManager();
 
   return (
     <div
@@ -15,7 +15,7 @@ export default function Page() {
         gap: "16px",
       }}
     >
-      <div>Playing audios: {getPlayingAudios().length}</div>
+      <div>Playing audios: {playingAudios.length}</div>
       <AudioPlayer src="sample.mp3" />
       <AudioPlayer src="sample.mp3" />
       <AudioPlayer src="sample.mp3" />
