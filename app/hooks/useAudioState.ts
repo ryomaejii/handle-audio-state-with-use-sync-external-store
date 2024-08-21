@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { useAudioManager } from "../contexts/AudioManager";
 
 interface AudioState {
   isPlaying: boolean;
@@ -8,13 +9,24 @@ interface AudioState {
 export function useAudioState(
   audioElement: React.RefObject<HTMLAudioElement>
 ): AudioState {
+  const { addAudio, removeAudio } = useAudioManager();
+
   const getIsPlayingSnapshot = () =>
     audioElement.current ? !audioElement.current.paused : false;
   const getCurrentTimeSnapshot = () =>
     audioElement.current ? audioElement.current.currentTime : 0;
 
   const subscribeToIsPlaying = (callback: () => void) => {
-    const handlePlayPause = () => callback();
+    const handlePlayPause = () => {
+      if (audioElement.current) {
+        if (audioElement.current.paused) {
+          removeAudio(audioElement.current);
+        } else {
+          addAudio(audioElement.current);
+        }
+      }
+      callback();
+    };
 
     if (audioElement.current) {
       audioElement.current.addEventListener("play", handlePlayPause);
