@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import { playAudio, useCurrentAudio, useRegisterAudio } from "../hooks/audio";
+import React, { useRef } from "react";
+import { useAudioState } from "../hooks/useAudioState";
 
 interface AudioPlayerProps {
   src: string;
@@ -9,13 +9,14 @@ interface AudioPlayerProps {
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  useRegisterAudio(audioRef);
+  const isPlaying = useAudioState(audioRef);
 
-  const onPlay = () => {
-    playAudio(audioRef);
-  };
-
-  return <audio ref={audioRef} src={src} controls onPlay={onPlay} />;
+  return (
+    <div>
+      <div>Audio is {isPlaying ? "Playing" : "Paused"}</div>
+      <audio ref={audioRef} src={src} controls />
+    </div>
+  );
 };
 
 export default AudioPlayer;
