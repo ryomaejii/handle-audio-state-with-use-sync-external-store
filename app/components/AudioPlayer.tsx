@@ -9,11 +9,12 @@ interface AudioPlayerProps {
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const isPlaying = useAudioState(audioRef);
+  const { isPlaying, currentTime } = useAudioState(audioRef);
 
   return (
     <div>
-      <div>Audio is {isPlaying ? "Playing" : "Paused"}</div>
+      <div>Audio is {isPlaying ? "playing" : "paused"}</div>
+      <div>Current time: {currentTime}</div>
       <audio ref={audioRef} src={src} controls />
     </div>
   );

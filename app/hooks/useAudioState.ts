@@ -1,17 +1,59 @@
-import { RefObject, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
-export function useAudioState(audioElement: RefObject<HTMLAudioElement>) {
-  const getSnapshot = () =>
+interface AudioState {
+  isPlaying: boolean;
+  currentTime: number;
+}
+
+export function useAudioState(
+  audioElement: React.RefObject<HTMLAudioElement>
+): AudioState {
+  const getIsPlayingSnapshot = () =>
     audioElement.current ? !audioElement.current.paused : false;
-  const subscribe = (callback: () => void) => {
+  const getCurrentTimeSnapshot = () =>
+    audioElement.current ? audioElement.current.currentTime : 0;
+
+  const subscribeToIsPlaying = (callback: () => void) => {
     const handlePlayPause = () => callback();
-    audioElement.current.addEventListener("play", handlePlayPause);
-    audioElement.current.addEventListener("pause", handlePlayPause);
+
+    if (audioElement.current) {
+      audioElement.current.addEventListener("play", handlePlayPause);
+      audioElement.current.addEventListener("pause", handlePlayPause);
+    }
+
     return () => {
-      audioElement.current.removeEventListener("play", handlePlayPause);
-      audioElement.current.removeEventListener("pause", handlePlayPause);
+      if (audioElement.current) {
+        audioElement.current.removeEventListener("play", handlePlayPause);
+        audioElement.current.removeEventListener("pause", handlePlayPause);
+      }
     };
   };
 
-  return useSyncExternalStore(subscribe, getSnapshot);
+  const subscribeToCurrentTime = (callback: () => void) => {
+    const handleTimeUpdate = () => callback();
+
+    if (audioElement.current) {
+      audioElement.current.addEventListener("timeupdate", handleTimeUpdate);
+    }
+
+    return () => {
+      if (audioElement.current) {
+        audioElement.current.removeEventListener(
+          "timeupdate",
+          handleTimeUpdate
+        );
+      }
+    };
+  };
+
+  const isPlaying = useSyncExternalStore(
+    subscribeToIsPlaying,
+    getIsPlayingSnapshot
+  );
+  const currentTime = useSyncExternalStore(
+    subscribeToCurrentTime,
+    getCurrentTimeSnapshot
+  );
+
+  return { isPlaying, currentTime };
 }
