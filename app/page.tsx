@@ -1,10 +1,10 @@
 "use client";
 
 import AudioPlayer from "./components/AudioPlayer";
-import { resetAllAudio, useCurrentAudio } from "./hooks/audio";
+import { useCurrentAudio } from "./hooks/audio";
 
 export default function Page() {
-  const { isPlaying } = useCurrentAudio();
+  const { isPlaying, resetAllAudio } = useCurrentAudio();
 
   return (
     <div

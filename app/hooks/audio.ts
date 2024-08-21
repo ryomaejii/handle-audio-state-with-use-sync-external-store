@@ -1,39 +1,28 @@
-import { useEffect, useSyncExternalStore } from "react";
-
-type AudioElement = HTMLAudioElement | null;
-
-let currentAudio: AudioElement = null;
-const audioElements = new Set<HTMLAudioElement>();
-const listeners = new Set<() => void>();
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function getSnapshot(): AudioElement {
-  return currentAudio;
-}
-
-function setCurrentAudio(audio: AudioElement): void {
-  if (currentAudio && currentAudio !== audio) {
-    currentAudio.pause();
-  }
-  currentAudio = audio;
-  listeners.forEach((listener) => listener());
-}
+import { useEffect } from "react";
+import { useAudioContext } from "../contexts/AudioContext";
 
 export function useCurrentAudio() {
-  const audio = useSyncExternalStore(subscribe, getSnapshot);
-  const isPlaying = Boolean(audio);
+  const { currentAudio, resetAllAudio } = useAudioContext();
+  const isPlaying = Boolean(currentAudio);
 
   return {
-    audio,
+    audio: currentAudio,
     isPlaying,
+    resetAllAudio,
   };
 }
 
 export function useRegisterAudio(audioRef: React.RefObject<HTMLAudioElement>) {
+  const { registerAudioElement, unregisterAudioElement, setCurrentAudio } =
+    useAudioContext();
+
+  function playAudio(audioRef: React.RefObject<HTMLAudioElement>): void {
+    if (audioRef.current) {
+      setCurrentAudio(audioRef.current);
+      audioRef.current.play();
+    }
+  }
+
   useEffect(() => {
     const audioElement = audioRef.current;
     if (audioElement) {
@@ -44,27 +33,9 @@ export function useRegisterAudio(audioRef: React.RefObject<HTMLAudioElement>) {
         unregisterAudioElement(audioElement);
       }
     };
-  }, [audioRef]);
-}
+  }, [audioRef, registerAudioElement, unregisterAudioElement]);
 
-export function registerAudioElement(audio: HTMLAudioElement) {
-  audioElements.add(audio);
-}
-
-export function unregisterAudioElement(audio: HTMLAudioElement) {
-  audioElements.delete(audio);
-}
-
-export function playAudio(audioRef: React.RefObject<HTMLAudioElement>): void {
-  if (audioRef.current) {
-    setCurrentAudio(audioRef.current);
-    audioRef.current.play();
-  }
-}
-
-export function resetAllAudio() {
-  audioElements.forEach((audio) => {
-    audio.pause();
-    audio.currentTime = 0;
-  });
+  return {
+    playAudio,
+  };
 }
