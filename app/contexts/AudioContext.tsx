@@ -18,6 +18,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [currentAudio, setCurrentAudioState] = useState<AudioElement>(null);
+
   const audioElements = new Set<HTMLAudioElement>();
 
   const setCurrentAudio = useCallback(
@@ -25,10 +26,23 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
       if (currentAudio && currentAudio !== audio) {
         currentAudio.pause();
       }
+
+      if (audio) {
+        audio.addEventListener("pause", handlePause);
+      }
+
+      if (currentAudio) {
+        currentAudio.removeEventListener("pause", handlePause);
+      }
+
       setCurrentAudioState(audio);
     },
     [currentAudio]
   );
+
+  const handlePause = useCallback(() => {
+    setCurrentAudioState(null);
+  }, []);
 
   const registerAudioElement = useCallback(
     (audio: HTMLAudioElement) => {
