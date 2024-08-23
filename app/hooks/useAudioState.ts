@@ -1,4 +1,4 @@
-import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { useAudioManager } from "../contexts/AudioManager";
 
 interface AudioState {
@@ -13,7 +13,13 @@ export function useAudioState({
   pauseAllAudiosBeforePlay?: boolean;
 }): AudioState {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { addAudio, removeAudio, playingAudios } = useAudioManager();
+  const {
+    addAudios,
+    removeAudios,
+    addPlayingAudio,
+    removePlayingAudio,
+    playingAudios,
+  } = useAudioManager();
 
   const pauseAllOtherAudios = useCallback(
     (audio: HTMLAudioElement) => {
@@ -35,10 +41,10 @@ export function useAudioState({
     const handlePlayPause = () => {
       if (audioRef.current) {
         if (audioRef.current.paused) {
-          removeAudio(audioRef.current);
+          removePlayingAudio(audioRef.current);
         } else {
           pauseAllAudiosBeforePlay && pauseAllOtherAudios(audioRef.current);
-          addAudio(audioRef.current);
+          addPlayingAudio(audioRef.current);
         }
       }
       callback();
@@ -79,6 +85,18 @@ export function useAudioState({
     subscribeToCurrentTime,
     getCurrentTimeSnapshot
   );
+
+  useEffect(() => {
+    if (audioRef.current) {
+      addAudios(audioRef.current);
+    }
+
+    return () => {
+      if (audioRef.current) {
+        removeAudios(audioRef.current);
+      }
+    };
+  }, [addAudios, removeAudios]);
 
   return { audioRef, isPlaying, currentTime };
 }

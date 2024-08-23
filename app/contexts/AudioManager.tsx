@@ -9,16 +9,17 @@ import React, {
 } from "react";
 
 interface AudioManagerContext {
-  addAudio: (audio: HTMLAudioElement) => void;
-  removeAudio: (audio: HTMLAudioElement) => void;
+  audios: HTMLAudioElement[];
+  setAudios: React.Dispatch<React.SetStateAction<HTMLAudioElement[]>>;
   playingAudios: HTMLAudioElement[];
+  setPlayingAudios: React.Dispatch<React.SetStateAction<HTMLAudioElement[]>>;
 }
 
 const AudioManagerContext = createContext<AudioManagerContext | undefined>(
   undefined
 );
 
-export const useAudioManager = (): AudioManagerContext => {
+export const useAudioManagerContext = (): AudioManagerContext => {
   const context = useContext(AudioManagerContext);
   if (!context) {
     throw new Error(
@@ -28,26 +29,62 @@ export const useAudioManager = (): AudioManagerContext => {
   return context;
 };
 
-export const AudioManagerProvider = ({ children }: { children: ReactNode }) => {
-  const [playingAudios, setPlayingAudios] = useState<HTMLAudioElement[]>([]);
+export const useAudioManager = () => {
+  const { audios, setAudios, playingAudios, setPlayingAudios } =
+    useAudioManagerContext();
 
-  const addAudio = useCallback(
+  const addAudios = useCallback(
+    (audio: HTMLAudioElement) => {
+      setAudios((prev) => [...prev, audio]);
+    },
+    [setAudios]
+  );
+
+  const removeAudios = useCallback(
+    (audio: HTMLAudioElement) => {
+      setAudios((prev) => prev.filter((a) => a !== audio));
+    },
+    [setAudios]
+  );
+
+  const addPlayingAudio = useCallback(
     (audio: HTMLAudioElement) => {
       setPlayingAudios((prev) => [...prev, audio]);
     },
     [setPlayingAudios]
   );
 
-  const removeAudio = useCallback(
+  const removePlayingAudio = useCallback(
     (audio: HTMLAudioElement) => {
       setPlayingAudios((prev) => prev.filter((a) => a !== audio));
     },
     [setPlayingAudios]
   );
 
+  const resetAudios = useCallback(() => {
+    audios.forEach((audio) => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+  }, [playingAudios, setPlayingAudios]);
+
+  return {
+    addAudios,
+    removeAudios,
+    addPlayingAudio,
+    removePlayingAudio,
+    playingAudios,
+    resetAudios,
+  };
+};
+
+export const AudioManagerProvider = ({ children }: { children: ReactNode }) => {
+  const [audios, setAudios] = useState<HTMLAudioElement[]>([]);
+  const [playingAudios, setPlayingAudios] = useState<HTMLAudioElement[]>([]);
+
   return (
     <AudioManagerContext.Provider
-      value={{ addAudio, removeAudio, playingAudios }}
+      value={{ audios, setAudios, playingAudios, setPlayingAudios }}
     >
       {children}
     </AudioManagerContext.Provider>
