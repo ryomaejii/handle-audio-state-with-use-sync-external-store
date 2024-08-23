@@ -69,6 +69,7 @@ export const useAudioManager = () => {
   }, [playingAudios, setPlayingAudios]);
 
   return {
+    audios,
     addAudios,
     removeAudios,
     addPlayingAudio,

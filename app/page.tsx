@@ -4,7 +4,7 @@ import AudioPlayer from "./components/AudioPlayer";
 import { useAudioManager } from "./contexts/AudioManager";
 
 export default function Page() {
-  const { playingAudios, resetAudios } = useAudioManager();
+  const { audios, playingAudios, resetAudios } = useAudioManager();
 
   return (
     <div
@@ -16,6 +16,7 @@ export default function Page() {
       }}
     >
       <button onClick={resetAudios}>Reset</button>
+      <div>Loaded audios: {audios.length}</div>
       <div>Playing audios: {playingAudios.length}</div>
       <AudioPlayer src="sample.mp3" />
       <AudioPlayer src="sample.mp3" />
