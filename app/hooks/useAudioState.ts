@@ -5,6 +5,7 @@ interface AudioState {
   audioRef: React.MutableRefObject<HTMLAudioElement | null>;
   isPlaying: boolean;
   currentTime: number;
+  resetAudio: () => void;
 }
 
 export function useAudioState({
@@ -86,6 +87,13 @@ export function useAudioState({
     getCurrentTimeSnapshot
   );
 
+  const resetAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
   useEffect(() => {
     if (audioRef.current) {
       addAudios(audioRef.current);
@@ -98,5 +106,5 @@ export function useAudioState({
     };
   }, [addAudios, removeAudios]);
 
-  return { audioRef, isPlaying, currentTime };
+  return { audioRef, isPlaying, currentTime, resetAudio };
 }
